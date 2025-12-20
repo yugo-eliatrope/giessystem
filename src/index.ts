@@ -13,11 +13,11 @@ const indexHtml = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.ht
 const logger = new Logger();
 const store = new StoreManager(config.app.maxLogMessages);
 
-const serial = new SerialManager(config.serial, { logger: logger.child('Serial') }, (t, h) => store.update(t, h));
+const serial = new SerialManager(config.serial, { logger: logger.child('Serial') }, (t: number, h: number) => store.update(t, h));
 
 const server = new Server(
   config.server,
-  { onWrite: (data) => serial.write(data), getData: () => store.data },
+  { onWrite: (data: string) => serial.write(data), getData: () => store.data },
   { logger: logger.child('Server'), indexHtml }
 );
 
