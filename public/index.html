@@ -1,12 +1,416 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GiesSystem</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #f8f9fa;
+      --card-bg: #ffffff;
+      --text: #1a1a2e;
+      --text-secondary: #6b7280;
+      --accent: #10b981;
+      --accent-hover: #059669;
+      --border: #e5e7eb;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      padding: 1.5rem;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    header p {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+    }
+
+    .sensors {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .sensor-card {
+      background: var(--card-bg);
+      border-radius: 1rem;
+      padding: 1.25rem;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
+    .sensor-card .icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .sensor-card .value {
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .sensor-card .label {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 0.25rem;
+    }
+
+    .pump-card {
+      background: var(--card-bg);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 1.5rem;
+    }
+
+    .pump-card h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .pump-form {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .pump-form input {
+      flex: 1;
+      padding: 0.875rem 1rem;
+      border: 2px solid var(--border);
+      border-radius: 0.75rem;
+      font-size: 1rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .pump-form input:focus {
+      border-color: var(--accent);
+    }
+
+    .pump-form button {
+      padding: 0.875rem 1.5rem;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 0.75rem;
+      font-size: 1rem;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .pump-form button:hover {
+      background: var(--accent-hover);
+    }
+
+    .pump-form button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .hint {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 0.75rem;
+    }
+
+    .logs-toggle {
+      width: 100%;
+      padding: 1rem;
+      background: var(--card-bg);
+      border: none;
+      border-radius: 1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      font-family: inherit;
+      color: var(--text);
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logs-toggle .arrow {
+      transition: transform 0.3s;
+    }
+
+    .logs-toggle.open .arrow {
+      transform: rotate(180deg);
+    }
+
+    .logs-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s, visibility 0.3s;
+      z-index: 100;
+    }
+
+    .logs-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .logs-panel {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-height: 70dvh;
+      background: #1a1a2e;
+      border-radius: 1.5rem 1.5rem 0 0;
+      transform: translateY(100%);
+      transition: transform 0.3s ease-out;
+      z-index: 101;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .logs-panel.open {
+      transform: translateY(0);
+    }
+
+    .logs-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .logs-header h3 {
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .logs-close {
+      width: 2rem;
+      height: 2rem;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      border-radius: 0.5rem;
+      color: #fff;
+      font-size: 1.25rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logs-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem 1.5rem;
+    }
+
+    .log-entry {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.75rem;
+      color: #a3e635;
+      padding: 0.375rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      word-break: break-all;
+    }
+
+    .log-entry:last-child {
+      border-bottom: none;
+    }
+
+    .empty-logs {
+      color: rgba(255, 255, 255, 0.4);
+      text-align: center;
+      padding: 2rem;
+      font-size: 0.875rem;
+    }
+
+    .updated {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 1.5rem;
+    }
+  </style>
 </head>
 <body>
-  <h1>GiesSystem Server</h1>
+  <div class="container">
+    <header>
+      <h1>🌱 GiesSystem</h1>
+    </header>
+
+    <div class="sensors">
+      <div class="sensor-card">
+        <div class="icon">🌡️</div>
+        <div class="value" id="temperature">--</div>
+        <div class="label">Temperatur</div>
+      </div>
+      <div class="sensor-card">
+        <div class="icon">💧</div>
+        <div class="value" id="humidity">--</div>
+        <div class="label">Luftfeuchtigkeit</div>
+      </div>
+    </div>
+
+    <div class="pump-card">
+      <h2>Pumpe starten</h2>
+      <form class="pump-form" id="pump-form">
+        <input type="number" id="pump-time" min="2" max="32" placeholder="Sekunden" required>
+        <button type="submit">Starten</button>
+      </form>
+      <p class="hint">Laufzeit: 2 bis 32 Sekunden</p>
+    </div>
+
+    <button class="logs-toggle" id="logs-toggle">
+      <span>📋 Systemprotokolle</span>
+      <span class="arrow">▼</span>
+    </button>
+
+    <p class="updated" id="updated"></p>
+  </div>
+
+  <div class="logs-overlay" id="logs-overlay"></div>
+  <div class="logs-panel" id="logs-panel">
+    <div class="logs-header">
+      <h3>Systemprotokolle</h3>
+      <button class="logs-close" id="logs-close">×</button>
+    </div>
+    <div class="logs-content" id="logs-content">
+      <p class="empty-logs">Keine Protokolle vorhanden</p>
+    </div>
+  </div>
+
+  <script>
+    const findById = (id) => document.getElementById(id);
+
+    const temperatureEl = findById('temperature');
+    const humidityEl = findById('humidity');
+    const updatedEl = findById('updated');
+    const logsContent = findById('logs-content');
+    const logsToggle = findById('logs-toggle');
+    const logsOverlay = findById('logs-overlay');
+    const logsPanel = findById('logs-panel');
+    const logsClose = findById('logs-close');
+    const pumpForm = findById('pump-form');
+    const pumpTimeInput = findById('pump-time');
+
+    const formatTime = (date) => {
+      return new Date(date).toLocaleTimeString('de-DE', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    };
+
+    const openLogs = () => {
+      logsToggle.classList.add('open');
+      logsOverlay.classList.add('open');
+      logsPanel.classList.add('open');
+    };
+
+    const closeLogs = () => {
+      logsToggle.classList.remove('open');
+      logsOverlay.classList.remove('open');
+      logsPanel.classList.remove('open');
+    };
+
+    const updateUI = (data) => {
+      if (!isNaN(data.temperature)) {
+        temperatureEl.textContent = `${data.temperature.toFixed(1)}°`;
+      }
+      if (!isNaN(data.humidity)) {
+        humidityEl.textContent = `${data.humidity.toFixed(0)}%`;
+      }
+      if (data.updated) {
+        updatedEl.textContent = `Aktualisiert: ${formatTime(data.updated)}`;
+      }
+      if (data.logMsgs?.length) {
+        logsContent.innerHTML = data.logMsgs
+          .slice()
+          .reverse()
+          .map((msg) => `<div class="log-entry">${msg}</div>`)
+          .join('');
+      }
+    };
+
+    const fetchData = async () => {
+      try {
+        const res = await fetch('/info');
+        const data = await res.json();
+        updateUI(data);
+      } catch (err) {
+        alert('Fehler beim Laden: ' + err.message);
+      }
+    };
+
+    const sendPump = async (time) => {
+      try {
+        const res = await fetch(`/pump?time=${time}`);
+        if (!res.ok) {
+          const data = await res.json();
+          alert(data.error || 'Fehler');
+        }
+      } catch (err) {
+        alert('Verbindungsfehler: ' + err.message);
+      }
+    };
+
+    logsToggle.addEventListener('click', openLogs);
+    logsOverlay.addEventListener('click', closeLogs);
+    logsClose.addEventListener('click', closeLogs);
+
+    pumpForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const time = parseInt(pumpTimeInput.value, 10);
+      if (time >= 2 && time <= 32) {
+        pumpForm.querySelector('button').disabled = true;
+        await sendPump(time);
+        pumpForm.querySelector('button').disabled = false;
+        pumpTimeInput.value = '';
+      }
+    });
+
+    fetchData();
+    setInterval(fetchData, 5000);
+  </script>
 </body>
 </html>
-
