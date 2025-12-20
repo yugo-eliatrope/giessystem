@@ -29,4 +29,3 @@ export const config = {
     maxLogMessages: getEnvVarAsNumber('MAX_LOG_MESSAGES'),
   },
 } as const;
-

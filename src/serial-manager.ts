@@ -1,4 +1,5 @@
 import { SerialPort } from 'serialport';
+
 import { Logger } from './logger';
 import { parseSerialData } from './parser';
 
@@ -7,11 +8,7 @@ const logger = new Logger('SerialManager');
 export class SerialManager {
   private port: SerialPort;
 
-  constructor(
-    path: string,
-    baudRate: number,
-    onData: (t: number, h: number) => void
-  ) {
+  constructor(path: string, baudRate: number, onData: (t: number, h: number) => void) {
     this.port = new SerialPort({ path, baudRate });
 
     this.port.on('open', () => {
@@ -32,7 +29,7 @@ export class SerialManager {
   }
 
   public write(data: string | Buffer) {
-    this.port.write(data + '\n', (err) => {
+    this.port.write(`${data}\n`, (err) => {
       if (err) {
         logger.error(`Error writing to serial port: ${err.message}`);
       } else {
