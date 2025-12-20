@@ -11,6 +11,7 @@
   "author": "Yugo Eliatrope",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^17.2.3",
     "serialport": "12",
     "ts-node": "^10.7.0",
     "typescript": "^5"

@@ -1,0 +1,32 @@
+import 'dotenv/config';
+
+const getEnvVar = (name: string): string => {
+  const value = process.env[name];
+  if (typeof value === 'undefined') {
+    throw new Error(`Missing required environment variable: ${name}`);
+  }
+  return value;
+};
+
+const getEnvVarAsNumber = (name: string): number => {
+  const value = getEnvVar(name);
+  const parsed = Number.parseInt(value, 10);
+  if (Number.isNaN(parsed)) {
+    throw new Error(`Environment variable ${name} must be a valid number`);
+  }
+  return parsed;
+};
+
+export const config = {
+  serial: {
+    path: getEnvVar('SERIAL_PORT_PATH'),
+    baudRate: getEnvVarAsNumber('SERIAL_BAUD_RATE'),
+  },
+  server: {
+    port: getEnvVarAsNumber('SERVER_PORT'),
+  },
+  app: {
+    maxLogMessages: getEnvVarAsNumber('MAX_LOG_MESSAGES'),
+  },
+} as const;
+

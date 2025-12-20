@@ -1,22 +1,23 @@
 import process from 'process';
-import { Logger } from './logger.ts';
-import { SerialManager } from './serial-manager.ts';
-import { StoreManager } from './store.ts';
-import { Server } from './server.ts';
+import { config } from './config';
+import { Logger } from './logger';
+import { SerialManager } from './serial-manager';
+import { StoreManager } from './store';
+import { Server } from './server';
 
 const logger = new Logger('GiesSystem');
 
-const path = process.argv[2];
-const MAX_LOG_MSGS = 200;
-
-if (!path) {
-  logger.error('No path provided');
-  process.exit(1);
-}
-
-const store = new StoreManager(MAX_LOG_MSGS);
-const serial = new SerialManager(path, (t, h) => store.update(t, h));
-const server = new Server(8080, (data: string) => serial.write(data), () => store.data);
+const store = new StoreManager(config.app.maxLogMessages);
+const serial = new SerialManager(
+  config.serial.path,
+  config.serial.baudRate,
+  (t, h) => store.update(t, h)
+);
+const server = new Server(
+  config.server.port,
+  (data: string) => serial.write(data),
+  () => store.data
+);
 
 server.start();
 

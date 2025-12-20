@@ -48,19 +48,15 @@ export class Server {
 
   private handleIndexRequest(res: http.ServerResponse) {
     const filePath = path.join(__dirname, '..', 'public', 'index.html');
-    
-    fs.readFile(filePath, 'utf-8', (err, content) => {
-      if (err) {
-        this.logger.error(`Failed to read index.html: ${err.message}`);
-        res.statusCode = 500;
-        res.end('Internal Server Error');
-        return;
-      }
-      
+    try {
+      const content = fs.readFileSync(filePath, { encoding: 'utf-8' });
       res.setHeader('Content-Type', 'text/html');
       res.statusCode = 200;
-      res.end(content);
-    });
+      res.write(content);
+    } catch (err: any) {
+      this.logger.error(`Failed to read index.html: ${err.message}`);
+      res.statusCode = 500;
+    }
   }
 
   private handleInfoRequest(res: http.ServerResponse) {

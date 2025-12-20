@@ -1,14 +1,17 @@
 import { SerialPort } from 'serialport';
-import { Logger } from './logger.js';
-import { parseSerialData } from './parser.js';
+import { Logger } from './logger';
+import { parseSerialData } from './parser';
 
 const logger = new Logger('SerialManager');
 
 export class SerialManager {
   private port: SerialPort;
 
-  constructor(path: string, onData: (t: number, h: number) => void) {
-    const baudRate = 9600;
+  constructor(
+    path: string,
+    baudRate: number,
+    onData: (t: number, h: number) => void
+  ) {
     this.port = new SerialPort({ path, baudRate });
 
     this.port.on('open', () => {

@@ -31,6 +31,6 @@ export class StoreManager {
   }
 
   public get data(): Store {
-    return this.store;
+    return { ...this.store };
   }
 }
