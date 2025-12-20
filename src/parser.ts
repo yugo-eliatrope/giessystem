@@ -1,9 +1,4 @@
-type ParsedData =
-  | string
-  | {
-      temperature: number;
-      humidity: number;
-    };
+import { ParsedData } from './types';
 
 export const parseSerialData = (data: Buffer): ParsedData => {
   const str = data.toString().replace(/\r|\n|\s/g, '');
