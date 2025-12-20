@@ -1,0 +1,21 @@
+{
+  "name": "empty-ts-project",
+  "version": "1.0.0",
+  "description": "TS-project template",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "ts-node src/index.ts",
+    "tsc": "tsc",
+    "start": "node dist/index.js"
+  },
+  "author": "Yugo Eliatrope",
+  "license": "ISC",
+  "dependencies": {
+    "serialport": "12",
+    "ts-node": "^10.7.0",
+    "typescript": "^5"
+  },
+  "devDependencies": {
+    "@types/node": "^16.11.6"
+  }
+}
