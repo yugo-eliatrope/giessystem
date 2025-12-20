@@ -5,22 +5,26 @@ export interface ILogger {
 }
 
 export class Logger implements ILogger {
+  public static onLog: null | ((message: string) => void) = null;
   constructor(private readonly scope?: string) {}
 
   public info = (...args: unknown[]) => {
-    this.log('INFO ', ...args);
+    this.log('INFO ', '', ...args);
   };
 
   public error = (...args: unknown[]) => {
-    this.log('ERROR', ...args);
+    this.log('ERROR', '\x1b[31m', ...args);
   };
 
   public child = (scope: string): ILogger => new Logger(this.scope ? `${this.scope}:${scope}` : scope);
 
-  private log = (level: string, ...args: unknown[]) => {
+  private log = (level: string, color: string, ...args: unknown[]) => {
     const timestamp = new Date().toISOString();
     const scopePrefix = this.scope ? `[${this.scope}] ` : '';
     const message = args.map((arg) => (typeof arg === 'object' ? JSON.stringify(arg) : String(arg))).join(' ');
-    console.log(`[${timestamp}] [${level}] ${scopePrefix}${message}`);
+    const reset = color ? '\x1b[0m' : '';
+    const text = `[${timestamp}] [${level}] ${scopePrefix}${message}`;
+    Logger.onLog?.(text);
+    console.log(`${color}${text}${reset}`);
   };
 }

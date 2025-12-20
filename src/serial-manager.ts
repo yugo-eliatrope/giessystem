@@ -32,9 +32,11 @@ export class SerialManager {
 
     this.port.on('data', (data: Buffer) => {
       const parsedData = parseSerialData(data);
-      this.logger.info(parsedData);
       if (typeof parsedData === 'object') {
+        this.logger.info(`Sensor data: ${parsedData.temperature}°C, ${parsedData.humidity}%`);
         this.onData(parsedData.temperature, parsedData.humidity);
+      } else {
+        parsedData && this.logger.info(parsedData);
       }
     });
 

@@ -12,6 +12,7 @@ const indexHtml = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.ht
 
 const logger = new Logger();
 const store = new StoreManager(config.app.maxLogMessages);
+Logger.onLog = (message: string) => store.pushLogMsg(message);
 
 const serial = new SerialManager(config.serial, { logger: logger.child('Serial') }, (t: number, h: number) => store.update(t, h));
 
