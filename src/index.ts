@@ -23,8 +23,12 @@ const server = new Server(
 
 server.start();
 
-process.on('SIGINT', () => {
+const shutdown = async () => {
   logger.info('Shutting down...');
   serial.close();
+  await server.stop();
   process.exit(0);
-});
+};
+
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);

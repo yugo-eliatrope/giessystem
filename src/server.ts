@@ -40,6 +40,20 @@ export class Server {
     });
   };
 
+  public stop = (): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      this.server.close((err) => {
+        if (err) {
+          this.logger.error(`Error closing server: ${err.message}`);
+          reject(err);
+        } else {
+          this.logger.info('Server closed');
+          resolve();
+        }
+      });
+    });
+  };
+
   private handleRequest = (req: http.IncomingMessage, res: http.ServerResponse) => {
     const url = new URL(`http://localhost${req.url}`);
     switch (url.pathname) {
