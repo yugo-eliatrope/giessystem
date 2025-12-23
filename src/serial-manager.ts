@@ -2,6 +2,7 @@ import { SerialPort } from 'serialport';
 
 import { ILogger } from './logger';
 import { parseSerialData } from './parser';
+import { isUnsavedSensorReading } from './domain';
 
 export type SerialManagerDeps = {
   logger: ILogger;
@@ -32,11 +33,11 @@ export class SerialManager {
 
     this.port.on('data', (data: Buffer) => {
       const parsedData = parseSerialData(data);
-      if (typeof parsedData === 'object') {
+      if (isUnsavedSensorReading(parsedData)) {
         this.logger.info(`Sensor data: ${parsedData.temperature}°C, ${parsedData.humidity}%`);
         this.onData(parsedData.temperature, parsedData.humidity);
       } else {
-        parsedData && this.logger.info(parsedData);
+        parsedData && this.logger.info(parsedData.message);
       }
     });
 
@@ -46,6 +47,7 @@ export class SerialManager {
   }
 
   public write = (data: string | Buffer) => {
+    this.logger.info(`Writing data to serial port: ${data}`);
     this.port.write(`${data}\n`, (err) => {
       if (err) {
         this.logger.error(`Error writing to serial port: ${err.message}`);

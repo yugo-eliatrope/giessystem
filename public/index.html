@@ -367,7 +367,7 @@
         logsContent.innerHTML = data.logMsgs
           .slice()
           .reverse()
-          .map((msg) => `<div class="log-entry">${msg}</div>`)
+          .map((logEntry) => `<div class="log-entry">[${formatTime(logEntry.createdAt)}] ${logEntry.message}</div>`)
           .join('');
       }
     };

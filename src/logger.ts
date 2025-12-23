@@ -23,8 +23,8 @@ export class Logger implements ILogger {
     const scopePrefix = this.scope ? `[${this.scope}] ` : '';
     const message = args.map((arg) => (typeof arg === 'object' ? JSON.stringify(arg) : String(arg))).join(' ');
     const reset = color ? '\x1b[0m' : '';
-    const text = `[${timestamp}] [${level}] ${scopePrefix}${message}`;
+    const text = `[${level}] ${scopePrefix}${message}`;
     Logger.onLog?.(text);
-    console.log(`${color}${text}${reset}`);
+    console.log(`${color}[${timestamp}] ${text}${reset}`);
   };
 }
