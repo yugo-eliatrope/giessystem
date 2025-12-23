@@ -55,7 +55,7 @@ export class DatabaseManager {
       temperature: sensorReading[0].temperature,
       humidity: sensorReading[0].humidity,
       updated: sensorReading[0].createdAt,
-      logMsgs: logEntries.map((entry) => entry.message),
+      logMsgs: logEntries,
     };
   }
 }

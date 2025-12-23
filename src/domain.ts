@@ -9,7 +9,7 @@ export type State = {
   temperature: number;
   humidity: number;
   updated: Date;
-  logMsgs: string[];
+  logMsgs: LogEntry[];
 };
 
 export type { SensorReading, LogEntry };

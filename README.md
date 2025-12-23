@@ -42,6 +42,7 @@ yarn build
 Создайте файл `.env` в корне проекта:
 
 ```env
+DATABASE_URL="file:./dev.db"
 SERIAL_PORT_PATH=/dev/ttyUSB0
 SERIAL_BAUD_RATE=9600
 SERVER_PORT=3000
@@ -53,7 +54,26 @@ MAX_LOG_MESSAGES=100
 > - macOS: `/dev/cu.usbserial-*` или `/dev/cu.usbmodem*`
 > - Windows: `COM3`, `COM4`, и т.д.
 
-### 4. Запуск
+### 4. База данных
+
+Проект использует SQLite через Prisma. Для инициализации БД:
+
+```bash
+# Создать/обновить базу данных по схеме
+yarn db:push
+```
+
+Другие полезные команды:
+
+```bash
+# Просмотр данных в браузере (Prisma Studio)
+yarn db:studio
+
+# Создание миграции (для production)
+yarn db:migrate
+```
+
+### 5. Запуск
 
 ```bash
 # Production
@@ -63,7 +83,7 @@ yarn start
 yarn dev
 ```
 
-Веб-интерфейс будет доступен по адресу `http://localhost:3000` если SERVER_PORT == 3000
+Веб-интерфейс будет доступен по адресу `http://localhost:3000` (если `SERVER_PORT=3000`)
 
 ## API
 
