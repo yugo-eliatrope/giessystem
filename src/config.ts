@@ -28,4 +28,7 @@ export const config = {
   app: {
     maxLogMessages: getEnvVarAsNumber('MAX_LOG_MESSAGES'),
   },
+  database: {
+    url: getEnvVar('DATABASE_URL'),
+  },
 } as const;
