@@ -1,18 +1,19 @@
-// Re-export Prisma generated types
-export type { SensorReading, LogEntry } from '.prisma/client';
+import { LogEntry, SensorReading } from '.prisma/client';
 
-// Application types
-export type SensorData = {
-  temperature: number;
-  humidity: number;
-};
+type UnsavedData<T extends { id: number; createdAt: Date }> = Omit<T, 'id' | 'createdAt'>;
 
-export type ParsedData = SensorData | string;
+export type UnsavedSensorReading = UnsavedData<SensorReading>;
+export type UnsavedLogEntry = UnsavedData<LogEntry>;
 
-export type Store = {
+export type State = {
   temperature: number;
   humidity: number;
   updated: Date;
   logMsgs: string[];
 };
 
+export type { SensorReading, LogEntry };
+
+export const isUnsavedSensorReading = (data: UnsavedLogEntry | UnsavedSensorReading): data is UnsavedSensorReading => {
+  return 'temperature' in data && 'humidity' in data;
+};

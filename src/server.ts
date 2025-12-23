@@ -1,7 +1,7 @@
 import http from 'http';
 
+import { State } from './domain';
 import { ILogger } from './logger';
-import { Store } from './types';
 
 export type ServerDeps = {
   logger: ILogger;
@@ -14,7 +14,7 @@ export type ServerConfig = {
 
 export type ServerCallbacks = {
   onWrite: (data: string) => void;
-  getData: () => Store;
+  getState: () => Promise<State>;
 };
 
 export class Server {
@@ -29,8 +29,8 @@ export class Server {
   ) {
     this.logger = deps.logger;
     this.indexHtml = deps.indexHtml;
-    this.server = http.createServer((req, res) => {
-      this.handleRequest(req, res);
+    this.server = http.createServer(async (req, res) => {
+      await this.handleRequest(req, res);
     });
   }
 
@@ -54,11 +54,11 @@ export class Server {
     });
   };
 
-  private handleRequest = (req: http.IncomingMessage, res: http.ServerResponse) => {
+  private handleRequest = async (req: http.IncomingMessage, res: http.ServerResponse) => {
     const url = new URL(`http://localhost${req.url}`);
     switch (url.pathname) {
       case '/info': {
-        this.handleInfoRequest(res);
+        await this.handleInfoRequest(res);
         break;
       }
       case '/pump': {
@@ -82,9 +82,10 @@ export class Server {
     res.write(this.indexHtml);
   };
 
-  private handleInfoRequest = (res: http.ServerResponse) => {
+  private handleInfoRequest = async (res: http.ServerResponse) => {
+    const state = await this.callbacks.getState();
     res.setHeader('Content-Type', 'application/json');
-    res.write(JSON.stringify(this.callbacks.getData()));
+    res.write(JSON.stringify(state));
     res.statusCode = 200;
   };
 
