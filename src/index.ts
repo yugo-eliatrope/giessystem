@@ -5,10 +5,11 @@ import process from 'process';
 import { config } from './config';
 import { Logger } from './logger';
 import { SerialManager } from './serial-manager';
-import { Server } from './server';
+import { HttpServer } from './http-server';
 import { DatabaseManager } from './database-manager';
+import { InfoWebSocketServer } from './websocket-server';
 
-const indexHtml = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf-8');
+const indexHtml = fs.readFileSync(path.join('..', 'public', 'index.html'), 'utf-8');
 
 const logger = new Logger();
 const database = new DatabaseManager(logger.child('Database'));
@@ -20,18 +21,29 @@ const serial = new SerialManager(
   { logger: logger.child('Serial') }, (t: number, h: number) => database.saveSensorReading({ temperature: t, humidity: h })
 );
 
-const server = new Server(
+const httpServer = new HttpServer(
   config.server,
-  { onWrite: (data: string) => serial.write(data), getState: () => database.getState() },
+  { onWrite: (data: string) => serial.write(data) },
   { logger: logger.child('Server'), indexHtml }
 );
 
-server.start();
+const wsServer = new InfoWebSocketServer(
+  { getState: () => database.getState() },
+  { logger: logger.child('WebSocket') }
+);
+
+httpServer.server.on('upgrade', (request, socket, head) => {
+  wsServer.handleUpgrade(request, socket, head);
+});
+
+httpServer.start();
+wsServer.startBroadcasting(5000);
 
 const shutdown = async () => {
   logger.info('Shutting down...');
   serial.close();
-  await server.stop();
+  wsServer.close();
+  await httpServer.stop();
   await database.disconnect();
   process.exit(0);
 };

@@ -366,20 +366,37 @@
       if (data.logMsgs?.length) {
         logsContent.innerHTML = data.logMsgs
           .slice()
-          .reverse()
           .map((logEntry) => `<div class="log-entry">[${formatTime(logEntry.createdAt)}] ${logEntry.message}</div>`)
           .join('');
       }
     };
 
-    const fetchData = async () => {
-      try {
-        const res = await fetch('/info');
-        const data = await res.json();
-        updateUI(data);
-      } catch (err) {
-        alert('Fehler beim Laden: ' + err.message);
-      }
+    const connectWebSocket = () => {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const ws = new WebSocket(`${protocol}//${window.location.host}/info`);
+
+      ws.onopen = () => {
+        console.log('WebSocket connected');
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          updateUI(data);
+        } catch (err) {
+          console.error('Failed to parse WebSocket message:', err);
+        }
+      };
+
+      ws.onclose = () => {
+        console.log('WebSocket disconnected, reconnecting in 3s...');
+        setTimeout(connectWebSocket, 3000);
+      };
+
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        ws.close();
+      };
     };
 
     const sendPump = async (time) => {
@@ -409,8 +426,7 @@
       }
     });
 
-    fetchData();
-    setInterval(fetchData, 5000);
+    connectWebSocket();
   </script>
 </body>
 </html>
