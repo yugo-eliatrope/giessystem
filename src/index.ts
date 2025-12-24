@@ -11,6 +11,7 @@ import { UnsavedSensorReading } from './domain';
 
 const startUp = async () => {
   const logger = new Logger();
+  logger.info('Starting up...');
   const database = new DatabaseManager(logger.child('Database'));
   logger.onLog = (message: string) => database.saveLogEntry({ message });
   await database.connect();
@@ -23,7 +24,7 @@ const startUp = async () => {
   
   const httpServer = new HttpServer(
     config.server,
-    { logger: logger.child('Server') },
+    { logger: logger.child('HTTP Server') },
     { onWrite: (data: string) => serial.write(data) },
     await readAllFilesInDir('public'),
   );
@@ -39,6 +40,7 @@ const startUp = async () => {
   
   httpServer.start();
   wsServer.startBroadcasting(5000);
+  logger.info('Startup complete');
   
   const shutdown = async () => {
     logger.info('Shutting down...');
@@ -46,6 +48,7 @@ const startUp = async () => {
     wsServer.close();
     await httpServer.stop();
     await database.disconnect();
+    logger.info('Shutdown complete');
     process.exit(0);
   };
   
