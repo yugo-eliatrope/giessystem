@@ -27,10 +27,10 @@ export class Logger implements ILogger {
 
   private log = (level: string, color: string, ...args: unknown[]) => {
     const timestamp = new Date().toISOString();
-    const scopePrefix = this.scope ? `[${this.scope}]` : '';
+    const scopePrefix = this.scope ? `[${this.scope}] ` : '';
     const message = args.map((arg) => (typeof arg === 'object' ? JSON.stringify(arg) : String(arg))).join(' ');
     const reset = color ? '\x1b[0m' : '';
-    const text = `[${level}] ${scopePrefix} ${message}`;
+    const text = `[${level}] ${scopePrefix}${message}`;
     this.onLog?.(text);
     console.log(`${color}[${timestamp}] ${text}${reset}`);
   };
