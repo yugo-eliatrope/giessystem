@@ -9,7 +9,7 @@ import { HttpServer } from './http-server';
 import { DatabaseManager } from './database-manager';
 import { InfoWebSocketServer } from './websocket-server';
 
-const indexHtml = fs.readFileSync(path.join('..', 'public', 'index.html'), 'utf-8');
+const indexHtml = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf-8');
 
 const logger = new Logger();
 const database = new DatabaseManager(logger.child('Database'));
