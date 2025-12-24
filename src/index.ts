@@ -13,7 +13,6 @@ const startUp = async () => {
   const logger = new Logger();
   logger.info('Starting up...');
   const database = new DatabaseManager(logger.child('Database'));
-  logger.onLog = (message: string) => database.saveLogEntry({ message });
   await database.connect();
 
   const serial = new SerialManager(
@@ -40,10 +39,12 @@ const startUp = async () => {
   
   httpServer.start();
   wsServer.startBroadcasting(5000);
+  logger.onLog = (message: string) => database.saveLogEntry({ message });
   logger.info('Startup complete');
   
   const shutdown = async () => {
     logger.info('Shutting down...');
+    logger.onLog = null;
     serial.close();
     wsServer.close();
     await httpServer.stop();
