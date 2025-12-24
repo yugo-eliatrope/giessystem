@@ -14,12 +14,6 @@ const main = async () => {
 
   const database = new DatabaseManager(logger.child('Database'));
 
-  const serial = new SerialManager(
-    config.serial,
-    logger.child('Serial'),
-    eventBus,
-  );
-
   const httpServer = new HttpServer(
     config.server,
     logger.child('HTTP'),
@@ -31,8 +25,13 @@ const main = async () => {
     { getState: () => database.getState() },
     logger.child('WebSocket'),
   );
+  
+  const serial = new SerialManager(
+    config.serial,
+    logger.child('Serial'),
+    eventBus,
+  );
 
-  // Orchestrator sets up event flows in constructor
   const orchestrator = new Orchestrator(
     logger,
     eventBus,
@@ -42,6 +41,7 @@ const main = async () => {
     wsServer,
   );
   await orchestrator.start();
+  logger.info('Startup complete');
 };
 
 main();

@@ -48,7 +48,6 @@ export class Orchestrator {
   }
 
   public async start(): Promise<void> {
-    this.logger.info('Starting up...');
     await this.database.connect();
     this.httpServer.server.on('upgrade', (request, socket, head) => {
       this.wsServer.handleUpgrade(request, socket, head);
@@ -56,7 +55,6 @@ export class Orchestrator {
     this.httpServer.start();
     this.wsServer.startBroadcasting(5000);
     this.setupShutdownHandlers();
-    this.logger.info('Startup complete');
   }
 
   private setupShutdownHandlers(): void {
