@@ -14,11 +14,10 @@ export type ServerConfig = {
 
 export type ServerCallbacks = {
   onWrite: (data: string) => void;
-  getState: () => Promise<State>;
 };
 
-export class Server {
-  private server: http.Server;
+export class HttpServer {
+  public readonly server: http.Server;
   private logger: ILogger;
   private indexHtml: string;
 
@@ -57,10 +56,6 @@ export class Server {
   private handleRequest = async (req: http.IncomingMessage, res: http.ServerResponse) => {
     const url = new URL(`http://localhost${req.url}`);
     switch (url.pathname) {
-      case '/info': {
-        await this.handleInfoRequest(res);
-        break;
-      }
       case '/pump': {
         this.handlePumpRequest(res, url.searchParams);
         break;
@@ -80,13 +75,6 @@ export class Server {
     res.setHeader('Content-Type', 'text/html');
     res.statusCode = 200;
     res.write(this.indexHtml);
-  };
-
-  private handleInfoRequest = async (res: http.ServerResponse) => {
-    const state = await this.callbacks.getState();
-    res.setHeader('Content-Type', 'application/json');
-    res.write(JSON.stringify(state));
-    res.statusCode = 200;
   };
 
   private handlePumpRequest = (res: http.ServerResponse, params: URLSearchParams) => {
