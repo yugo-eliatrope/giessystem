@@ -1,11 +1,10 @@
 import http from 'http';
 
-import { State } from './domain';
 import { ILogger } from './logger';
+import path from 'path';
 
 export type ServerDeps = {
   logger: ILogger;
-  indexHtml: string;
 };
 
 export type ServerConfig = {
@@ -19,15 +18,14 @@ export type ServerCallbacks = {
 export class HttpServer {
   public readonly server: http.Server;
   private logger: ILogger;
-  private indexHtml: string;
 
   constructor(
     private readonly config: ServerConfig,
+    private readonly staticFiles: Record<string, Buffer>,
     private readonly callbacks: ServerCallbacks,
     deps: ServerDeps
   ) {
     this.logger = deps.logger;
-    this.indexHtml = deps.indexHtml;
     this.server = http.createServer(async (req, res) => {
       await this.handleRequest(req, res);
     });
@@ -65,7 +63,8 @@ export class HttpServer {
         break;
       }
       default: {
-        res.statusCode = 404;
+        this.handleStaticFileRequest(res, url.pathname);
+        break;
       }
     }
     res.end('');
@@ -74,7 +73,7 @@ export class HttpServer {
   private handleIndexRequest = (res: http.ServerResponse) => {
     res.setHeader('Content-Type', 'text/html');
     res.statusCode = 200;
-    res.write(this.indexHtml);
+    res.write(this.staticFiles['public/index.html']);
   };
 
   private handlePumpRequest = (res: http.ServerResponse, params: URLSearchParams) => {
@@ -87,4 +86,30 @@ export class HttpServer {
     this.callbacks.onWrite(time.toString());
     res.statusCode = 200;
   };
+
+  private handleStaticFileRequest = (res: http.ServerResponse, urlPathname: string) => {
+    const filePath = urlPathname.replace(/^\//, '');
+    const file = this.staticFiles[filePath];
+    if (file) {
+      res.setHeader('Content-Type', this.getMimeType(filePath));
+      res.statusCode = 200;
+      res.write(file);
+    } else {
+      res.statusCode = 404;
+    }
+  };
+
+  private getMimeType = (filePath: string) => {
+    const extension = path.extname(filePath).toLowerCase();
+    switch (extension) {
+      case '.html':
+        return 'text/html';
+      case '.css':
+        return 'text/css';
+      case '.js':
+        return 'application/javascript';
+      default:
+        return 'application/octet-stream';
+    }
+  };  
 }
