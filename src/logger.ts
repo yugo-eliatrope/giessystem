@@ -1,3 +1,5 @@
+import { EventBus } from './event-bus';
+
 export interface ILogger {
   info: (...args: unknown[]) => void;
   error: (...args: unknown[]) => void;
@@ -5,9 +7,8 @@ export interface ILogger {
 }
 
 export class Logger implements ILogger {
-  public onLog: null | ((message: string) => void) = null;
-
   constructor(
+    private readonly eventBus: EventBus,
     private readonly scope?: string,
   ) {}
 
@@ -20,18 +21,16 @@ export class Logger implements ILogger {
   };
 
   public child = (scope: string): ILogger => {
-    const logger = new Logger(this.scope ? `${this.scope}:${scope}` : scope);
-    logger.onLog = this.onLog;
-    return logger;
-  }
+    const newScope = this.scope ? `${this.scope}:${scope}` : scope;
+    return new Logger(this.eventBus, newScope);
+  };
 
   private log = (level: string, color: string, ...args: unknown[]) => {
     const timestamp = new Date().toISOString();
     const scopePrefix = this.scope ? `[${this.scope}] ` : '';
-    const message = args.map((arg) => (typeof arg === 'object' ? JSON.stringify(arg) : String(arg))).join(' ');
     const reset = color ? '\x1b[0m' : '';
-    const text = `[${level}] ${scopePrefix}${message}`;
-    this.onLog?.(text);
-    console.log(`${color}[${timestamp}] ${text}${reset}`);
+    const message = `[${level}] ${scopePrefix}${args.map((arg) => (typeof arg === 'object' ? JSON.stringify(arg) : String(arg))).join(' ')}`;
+    this.eventBus.emit('log:entry', { message });
+    console.log(`${color}[${timestamp}] ${message}${reset}`);
   };
 }

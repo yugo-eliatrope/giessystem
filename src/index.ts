@@ -1,59 +1,47 @@
-import process from 'process';
-
 import { config } from './config';
+import { EventBus } from './event-bus';
 import { Logger } from './logger';
+import { DatabaseManager } from './database-manager';
 import { SerialManager } from './serial-manager';
 import { HttpServer } from './http-server';
-import { DatabaseManager } from './database-manager';
 import { InfoWebSocketServer } from './websocket-server';
 import { readAllFilesInDir } from './fs';
-import { UnsavedSensorReading } from './domain';
+import { Orchestrator } from './orchestrator';
 
-const startUp = async () => {
-  const logger = new Logger();
-  logger.info('Starting up...');
+const main = async () => {
+  const eventBus = new EventBus();
+  const logger = new Logger(eventBus);
+
   const database = new DatabaseManager(logger.child('Database'));
-  logger.onLog = (message: string) => database.saveLogEntry({ message });
-  await database.connect();
 
   const serial = new SerialManager(
     config.serial,
-    { logger: logger.child('Serial') },
-    (d: UnsavedSensorReading) => database.saveSensorReading(d),
+    logger.child('Serial'),
+    eventBus,
   );
-  
+
   const httpServer = new HttpServer(
     config.server,
-    { logger: logger.child('HTTP Server') },
-    { onWrite: (data: string) => serial.write(data) },
+    logger.child('HTTP'),
+    eventBus,
     await readAllFilesInDir('public'),
   );
-  
+
   const wsServer = new InfoWebSocketServer(
     { getState: () => database.getState() },
-    { logger: logger.child('WebSocket') }
+    logger.child('WebSocket'),
   );
-  
-  httpServer.server.on('upgrade', (request, socket, head) => {
-    wsServer.handleUpgrade(request, socket, head);
-  });
-  
-  httpServer.start();
-  wsServer.startBroadcasting(5000);
-  logger.info('Startup complete');
-  
-  const shutdown = async () => {
-    logger.info('Shutting down...');
-    serial.close();
-    wsServer.close();
-    await httpServer.stop();
-    await database.disconnect();
-    logger.info('Shutdown complete');
-    process.exit(0);
-  };
-  
-  process.on('SIGINT', shutdown);
-  process.on('SIGTERM', shutdown);
+
+  // Orchestrator sets up event flows in constructor
+  const orchestrator = new Orchestrator(
+    logger,
+    eventBus,
+    database,
+    serial,
+    httpServer,
+    wsServer,
+  );
+  await orchestrator.start();
 };
 
-startUp();
+main();

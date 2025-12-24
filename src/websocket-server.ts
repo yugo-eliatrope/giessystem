@@ -6,25 +6,19 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { State } from './domain';
 import { ILogger } from './logger';
 
-export type WebSocketServerDeps = {
-  logger: ILogger;
-};
-
 export type WebSocketServerCallbacks = {
   getState: () => Promise<State>;
 };
 
 export class InfoWebSocketServer {
   private wss: WebSocketServer;
-  private logger: ILogger;
   private clients: Set<WebSocket> = new Set();
   private broadcastInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor(
     private readonly callbacks: WebSocketServerCallbacks,
-    deps: WebSocketServerDeps
+    private readonly logger: ILogger,
   ) {
-    this.logger = deps.logger;
     this.wss = new WebSocketServer({ noServer: true });
 
     this.wss.on('connection', (ws) => {
