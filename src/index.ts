@@ -7,23 +7,25 @@ import { HttpServer } from './http-server';
 import { DatabaseManager } from './database-manager';
 import { InfoWebSocketServer } from './websocket-server';
 import { readAllFilesInDir } from './fs';
+import { UnsavedSensorReading } from './domain';
 
 const startUp = async () => {
   const logger = new Logger();
   const database = new DatabaseManager(logger.child('Database'));
+  logger.onLog = (message: string) => database.saveLogEntry({ message });
   await database.connect();
-  Logger.onLog = (message: string) => database.saveLogEntry({ message });
-  
+
   const serial = new SerialManager(
     config.serial,
-    { logger: logger.child('Serial') }, (t: number, h: number) => database.saveSensorReading({ temperature: t, humidity: h })
+    { logger: logger.child('Serial') },
+    (d: UnsavedSensorReading) => database.saveSensorReading(d),
   );
   
   const httpServer = new HttpServer(
     config.server,
-    await readAllFilesInDir('public'),
+    { logger: logger.child('Server') },
     { onWrite: (data: string) => serial.write(data) },
-    { logger: logger.child('Server') }
+    await readAllFilesInDir('public'),
   );
   
   const wsServer = new InfoWebSocketServer(

@@ -21,9 +21,9 @@ export class HttpServer {
 
   constructor(
     private readonly config: ServerConfig,
-    private readonly staticFiles: Record<string, Buffer>,
+    deps: ServerDeps,
     private readonly callbacks: ServerCallbacks,
-    deps: ServerDeps
+    private readonly staticFiles: Record<string, Buffer>,
   ) {
     this.logger = deps.logger;
     this.server = http.createServer(async (req, res) => {

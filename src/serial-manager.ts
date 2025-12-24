@@ -2,7 +2,7 @@ import { SerialPort } from 'serialport';
 
 import { ILogger } from './logger';
 import { parseSerialData } from './parser';
-import { isUnsavedSensorReading } from './domain';
+import { isUnsavedSensorReading, UnsavedSensorReading } from './domain';
 
 export type SerialManagerDeps = {
   logger: ILogger;
@@ -20,7 +20,7 @@ export class SerialManager {
   constructor(
     config: SerialManagerConfig,
     deps: SerialManagerDeps,
-    private readonly onData: (t: number, h: number) => void
+    private readonly onData: (d: UnsavedSensorReading) => void
   ) {
     this.logger = deps.logger;
     const { path, baudRate } = config;
@@ -35,7 +35,7 @@ export class SerialManager {
       const parsedData = parseSerialData(data);
       if (isUnsavedSensorReading(parsedData)) {
         this.logger.info(`Sensor data: ${parsedData.temperature}°C, ${parsedData.humidity}%`);
-        this.onData(parsedData.temperature, parsedData.humidity);
+        this.onData(parsedData);
       } else {
         parsedData && this.logger.info(parsedData.message);
       }

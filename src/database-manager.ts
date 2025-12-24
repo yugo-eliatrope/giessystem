@@ -52,9 +52,9 @@ export class DatabaseManager {
       this.getLogEntries(100),
     ]);
     return {
-      temperature: sensorReading[0].temperature,
-      humidity: sensorReading[0].humidity,
-      updated: sensorReading[0].createdAt,
+      temperature: sensorReading[0]?.temperature,
+      humidity: sensorReading[0]?.humidity,
+      updated: sensorReading[0]?.createdAt,
       logMsgs: logEntries,
     };
   }
