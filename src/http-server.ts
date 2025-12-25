@@ -1,31 +1,22 @@
 import http from 'http';
-
-import { ILogger } from './logger';
 import path from 'path';
 
-export type ServerDeps = {
-  logger: ILogger;
-};
+import { ILogger } from './logger';
+import { EventBus } from './event-bus';
 
-export type ServerConfig = {
+type Config = {
   port: number;
-};
-
-export type ServerCallbacks = {
-  onWrite: (data: string) => void;
 };
 
 export class HttpServer {
   public readonly server: http.Server;
-  private logger: ILogger;
 
   constructor(
-    private readonly config: ServerConfig,
-    deps: ServerDeps,
-    private readonly callbacks: ServerCallbacks,
+    private readonly config: Config,
+    private readonly logger: ILogger,
+    private readonly eventBus: EventBus,
     private readonly staticFiles: Record<string, Buffer>,
   ) {
-    this.logger = deps.logger;
     this.server = http.createServer(async (req, res) => {
       await this.handleRequest(req, res);
     });
@@ -83,7 +74,7 @@ export class HttpServer {
       res.write(JSON.stringify({ error: 'Invalid time parameter' }));
       return;
     }
-    this.callbacks.onWrite(time.toString());
+    this.eventBus.emit('pump:activate', { time });
     res.statusCode = 200;
   };
 

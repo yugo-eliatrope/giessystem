@@ -22,8 +22,8 @@ export const config = {
     path: getEnvVar('SERIAL_PORT_PATH'),
     baudRate: getEnvVarAsNumber('SERIAL_BAUD_RATE'),
   },
-  server: {
-    port: getEnvVarAsNumber('SERVER_PORT'),
+  httpServer: {
+    port: getEnvVarAsNumber('HTTP_SERVER_PORT'),
   },
   database: {
     url: getEnvVar('DATABASE_URL'),
