@@ -37,19 +37,20 @@ export class WebSocketServer {
   ) {
     this.wss = new WsWebSocketServer({ noServer: true });
 
-    this.wss.on('connection', (ws) => {
+    this.wss.on('connection', (ws, request) => {
+      const clientIp = this.getClientIp(request);
       this.clients.add(ws);
-      this.logger.info(`Client connected. Total clients: ${this.clients.size}`);
+      this.logger.info(`Client [${clientIp}] connected. Total clients: ${this.clients.size}`);
 
       this.sendInitialState(ws);
 
       ws.on('close', () => {
         this.clients.delete(ws);
-        this.logger.info(`Client disconnected. Total clients: ${this.clients.size}`);
+        this.logger.info(`Client [${clientIp}] disconnected. Total clients: ${this.clients.size}`);
       });
 
       ws.on('error', (error) => {
-        this.logger.error(`WebSocket error: ${error.message}`);
+        this.logger.error(`WebSocket error fot client [${clientIp}]: ${error.message}`);
         this.clients.delete(ws);
       });
     });
@@ -71,6 +72,15 @@ export class WebSocketServer {
     this.wss.handleUpgrade(request, socket, head, (ws) => {
       this.wss.emit('connection', ws, request);
     });
+  };
+
+  private getClientIp = (request: http.IncomingMessage): string => {
+    const forwardedFor = request.headers['x-forwarded-for'];
+    if (forwardedFor) {
+      const ips = Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor;
+      return ips.split(',')[0].trim();
+    }
+    return request.socket.remoteAddress || 'unknown';
   };
 
   private sendInitialState = async (ws: WebSocket) => {
