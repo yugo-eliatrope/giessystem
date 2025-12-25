@@ -31,7 +31,7 @@ const closeLogs = () => {
   logsPanel.classList.remove('open');
 };
 
-const updateUI = (data) => {
+const updateReading = (data) => {
   if (!isNaN(data.temperature)) {
     temperatureEl.textContent = `${data.temperature.toFixed(1)}°`;
   }
@@ -41,11 +41,20 @@ const updateUI = (data) => {
   if (data.updated) {
     updatedEl.textContent = `Aktualisiert: ${formatTime(data.updated)}`;
   }
-  if (data.logMsgs?.length) {
-    logsContent.innerHTML = data.logMsgs
+};
+
+const formatLogEntry = (logEntry) => {
+  return `<div class="log-entry">[${formatTime(logEntry.createdAt)}] ${logEntry.message}</div>`;
+};
+
+const updateLogs = (data) => {
+  if (Array.isArray(data)) {
+    logsContent.innerHTML = data
       .slice()
-      .map((logEntry) => `<div class="log-entry">[${formatTime(logEntry.createdAt)}] ${logEntry.message}</div>`)
+      .map(formatLogEntry)
       .join('');
+  } else {
+    logsContent.innerHTML = formatLogEntry(data) + logsContent.innerHTML;
   }
 };
 
@@ -59,8 +68,15 @@ const connectWebSocket = () => {
 
   ws.onmessage = (event) => {
     try {
-      const data = JSON.parse(event.data);
-      updateUI(data);
+      const d = JSON.parse(event.data);
+      if (d.type === 'state') {
+        updateReading(d.data);
+        updateLogs(d.data.logMsgs);
+      } else if (d.type === 'log') {
+        updateLogs(d.data);
+      } else if (d.type === 'reading') {
+        updateReading(d.data);
+      }
     } catch (err) {
       console.error('Failed to parse WebSocket message:', err);
     }

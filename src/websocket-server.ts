@@ -1,31 +1,41 @@
 import http from 'http';
 import { Duplex } from 'stream';
 
-import { WebSocketServer, WebSocket } from 'ws';
+import { WebSocketServer as WsWebSocketServer, WebSocket } from 'ws';
 
-import { State } from './domain';
+import { LogEntry, SensorReading, State } from './domain';
 import { ILogger } from './logger';
 
-export type WebSocketServerCallbacks = {
+interface IStore {
   getState: () => Promise<State>;
 };
 
-export class InfoWebSocketServer {
-  private wss: WebSocketServer;
+type OutgoingMessage = {
+  type: 'state';
+  data: State;
+} | {
+  type: 'log';
+  data: LogEntry;
+} | {
+  type: 'reading';
+  data: SensorReading;
+};
+
+export class WebSocketServer {
+  private wss: WsWebSocketServer;
   private clients: Set<WebSocket> = new Set();
-  private broadcastInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor(
-    private readonly callbacks: WebSocketServerCallbacks,
     private readonly logger: ILogger,
+    private readonly store: IStore,
   ) {
-    this.wss = new WebSocketServer({ noServer: true });
+    this.wss = new WsWebSocketServer({ noServer: true });
 
     this.wss.on('connection', (ws) => {
       this.clients.add(ws);
       this.logger.info(`Client connected. Total clients: ${this.clients.size}`);
 
-      this.sendState(ws);
+      this.sendInitialState(ws);
 
       ws.on('close', () => {
         this.clients.delete(ws);
@@ -50,50 +60,24 @@ export class InfoWebSocketServer {
     }
   };
 
-  public startBroadcasting = (intervalMs: number = 5000) => {
-    if (this.broadcastInterval) {
-      clearInterval(this.broadcastInterval);
-    }
-    this.broadcastInterval = setInterval(() => this.broadcast(), intervalMs);
-    this.logger.info(`Broadcasting started with ${intervalMs} ms interval`);
-  };
-
-  public stopBroadcasting = () => {
-    if (this.broadcastInterval) {
-      clearInterval(this.broadcastInterval);
-      this.broadcastInterval = null;
-      this.logger.info('Broadcasting stopped');
-    }
-  };
-
-  public broadcast = async () => {
-    if (this.clients.size === 0) return;
-
+  private sendInitialState = async (ws: WebSocket) => {
     try {
-      const state = await this.callbacks.getState();
-      const message = JSON.stringify(state);
-
-      for (const client of this.clients) {
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(message);
-        }
-      }
-    } catch (error) {
-      this.logger.error(`Broadcast error: ${(error as Error).message}`);
-    }
-  };
-
-  private sendState = async (ws: WebSocket) => {
-    try {
-      const state = await this.callbacks.getState();
-      ws.send(JSON.stringify(state));
+      const state = await this.store.getState();
+      ws.send(JSON.stringify({ type: 'state', data: state }));
     } catch (error) {
       this.logger.error(`Send state error: ${(error as Error).message}`);
     }
   };
 
+  public broadcastMessage = (message: OutgoingMessage) => {
+    for (const client of this.clients) {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify(message));
+      }
+    }
+  };
+
   public close = () => {
-    this.stopBroadcasting();
     for (const client of this.clients) {
       client.close();
     }

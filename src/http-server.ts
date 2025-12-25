@@ -4,7 +4,7 @@ import path from 'path';
 import { ILogger } from './logger';
 import { EventBus } from './event-bus';
 
-export type ServerConfig = {
+type Config = {
   port: number;
 };
 
@@ -12,7 +12,7 @@ export class HttpServer {
   public readonly server: http.Server;
 
   constructor(
-    private readonly config: ServerConfig,
+    private readonly config: Config,
     private readonly logger: ILogger,
     private readonly eventBus: EventBus,
     private readonly staticFiles: Record<string, Buffer>,

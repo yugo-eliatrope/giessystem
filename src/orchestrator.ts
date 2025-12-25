@@ -4,7 +4,7 @@ import { Logger } from './logger';
 import { SerialManager } from './serial-manager';
 import { HttpServer } from './http-server';
 import { DatabaseManager } from './database-manager';
-import { InfoWebSocketServer } from './websocket-server';
+import { WebSocketServer } from './websocket-server';
 import { EventBus } from './event-bus';
 
 export class Orchestrator {
@@ -14,34 +14,33 @@ export class Orchestrator {
     private readonly database: DatabaseManager,
     private readonly serial: SerialManager,
     private readonly httpServer: HttpServer,
-    private readonly wsServer: InfoWebSocketServer,
+    private readonly wsServer: WebSocketServer,
   ) {
     this.setupEventFlows();
   }
 
   private setupEventFlows(): void {
     /**
-     * FLOW 1: Sensor data → Database
-     * When sensor data arrives, save it to the database
+     * FLOW 1: Sensor data -> Database -> WebSocket
      */
-    this.eventBus.on('sensor:data', (data) => {
-      this.database.saveSensorReading(data);
+    this.eventBus.on('sensor:data', async (data) => {
+      const sensorReading = await this.database.saveSensorReading(data);
+      this.wsServer.broadcastMessage({ type: 'reading', data: sensorReading });
     });
 
     /**
-     * FLOW 2: Pump command → Serial port
-     * When pump activation is requested, write to Arduino
+     * FLOW 2: Pump command -> Serial port
      */
     this.eventBus.on('pump:activate', ({ time }) => {
       this.serial.write(time.toString());
     });
 
     /**
-     * FLOW 3: Log entries → Database
-     * Add log messages to the database
+     * FLOW 3: Log entries -> Database -> WebSocket
      */
-    this.eventBus.on('log:entry', ({ message }) => {
-      this.database.saveLogEntry({ message });
+    this.eventBus.on('log:entry', async ({ message }) => {
+      const logEntry = await this.database.saveLogEntry({ message });
+      this.wsServer.broadcastMessage({ type: 'log', data: logEntry });
     });
 
     this.logger.info('Event flows configured');
@@ -53,7 +52,6 @@ export class Orchestrator {
       this.wsServer.handleUpgrade(request, socket, head);
     });
     this.httpServer.start();
-    this.wsServer.startBroadcasting(5000);
     this.setupShutdownHandlers();
   }
 
