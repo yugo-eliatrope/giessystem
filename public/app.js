@@ -10,6 +10,7 @@ const logsPanel = findById('logs-panel');
 const logsClose = findById('logs-close');
 const pumpForm = findById('pump-form');
 const pumpTimeInput = findById('pump-time');
+const logoutBtn = findById('logout-btn');
 
 const formatTime = (date) => {
   return new Date(date).toLocaleTimeString('de-DE', {
@@ -39,7 +40,7 @@ const updateReading = (data) => {
     humidityEl.textContent = `${data.humidity.toFixed(0)}%`;
   }
   if (data.updated) {
-    updatedEl.textContent = `Aktualisiert: ${formatTime(data.updated)}`;
+    updatedEl.textContent = `Aktualisiert: ${formatTime(new Date())}`;
   }
 };
 
@@ -108,6 +109,11 @@ const sendPump = async (time) => {
 logsToggle.addEventListener('click', openLogs);
 logsOverlay.addEventListener('click', closeLogs);
 logsClose.addEventListener('click', closeLogs);
+
+logoutBtn.addEventListener('click', async () => {
+  await fetch('/logout');
+  window.location.href = '/';
+});
 
 pumpForm.addEventListener('submit', async (e) => {
   e.preventDefault();

@@ -63,6 +63,10 @@ export class HttpServer {
       await this.handleLoginRequest(req, res);
       return;
     }
+    if (url.pathname === '/logout') {
+      await this.handleLogoutRequest(req, res);
+      return;
+    }
 
     const isAuthenticated = this.isAuthenticated(req);
 
@@ -126,6 +130,16 @@ export class HttpServer {
       res.statusCode = 400;
       res.end(JSON.stringify({ error: 'Bad request' }));
     }
+  };
+
+  private handleLogoutRequest = async (req: http.IncomingMessage, res: http.ServerResponse) => {
+    const sessionToken = this.getSessionToken(req);
+    if (sessionToken) {
+      this.sessions.delete(sessionToken);
+    }
+    res.setHeader('Set-Cookie', 'session=; HttpOnly; Path=/; SameSite=Strict; Max-Age=0');
+    res.statusCode = 200;
+    res.end(JSON.stringify({ success: true }));
   };
 
   private readBody = (req: http.IncomingMessage): Promise<string> => {
