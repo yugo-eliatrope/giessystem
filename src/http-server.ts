@@ -4,6 +4,7 @@ import path from 'path';
 
 import { EventBus } from './event-bus';
 import { ILogger } from './logger';
+import { spawn } from 'child_process';
 
 type Config = {
   port: number;
@@ -101,6 +102,10 @@ export class HttpServer {
         this.handleAppRequest(res);
         break;
       }
+      case '/stream': {
+        this.handleStreamRequest(res);
+        break;
+      }
       default: {
         this.handleStaticFileRequest(res, url.pathname);
         break;
@@ -185,6 +190,43 @@ export class HttpServer {
     this.eventBus.emit('pump:activate', { time });
     res.statusCode = 200;
     res.end();
+  };
+
+  private handleStreamRequest = (res: http.ServerResponse) => {
+    res.writeHead(200, {
+      'Content-Type': 'multipart/x-mixed-replace; boundary=ffmpeg',
+      'Connection': 'keep-alive',
+      'Cache-Control': 'no-cache'
+    });
+
+    const ffmpeg = spawn('ffmpeg', [
+      '-f', 'v4l2',
+      '-i', '/dev/video3',
+      '-f', 'mjpeg',
+      '-q:v', '10',
+      '-r', '15',
+      '-vf', 'scale=640:-1',
+      '-'
+    ]);
+
+    ffmpeg.stdout.pipe(res);
+
+    ffmpeg.stderr.on('data', (data) => {
+      this.logger.error(`ffmpeg stderr: ${data}`);
+    });
+
+    ffmpeg.on('error', (err) => {
+      this.logger.error(`ffmpeg error: ${err.message}`);
+      res.end();
+    });
+
+    ffmpeg.on('close', () => {
+      res.end();
+    });
+
+    res.on('close', () => {
+      ffmpeg.kill('SIGTERM');
+    });
   };
 
   private handleStaticFileRequest = (res: http.ServerResponse, urlPathname: string) => {

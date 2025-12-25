@@ -162,6 +162,28 @@ header p {
   margin-top: 0.75rem;
 }
 
+.stream-card {
+  background: var(--card-bg);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  margin-bottom: 1.5rem;
+}
+
+.stream-card h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.stream-img {
+  width: 100%;
+  border-radius: 0.75rem;
+  background: #000;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
 .logs-toggle {
   width: 100%;
   padding: 1rem;
