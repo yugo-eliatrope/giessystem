@@ -67,6 +67,10 @@ export class HttpServer {
       await this.handleLogoutRequest(req, res);
       return;
     }
+    if (url.pathname === '/favicon.ico') {
+      this.handleFaviconRequest(res);
+      return;
+    }
 
     const isAuthenticated = this.isAuthenticated(req);
 
@@ -155,6 +159,19 @@ export class HttpServer {
     res.setHeader('Content-Type', 'text/html');
     res.statusCode = 200;
     res.write(this.staticFiles['public/app.html']);
+    res.end();
+  };
+
+  private handleFaviconRequest = (res: http.ServerResponse) => {
+    const favicon = this.staticFiles['public/favicon.svg'];
+    if (favicon) {
+      res.setHeader('Content-Type', 'image/svg+xml');
+      res.setHeader('Cache-Control', 'public, max-age=604800');
+      res.statusCode = 200;
+      res.write(favicon);
+    } else {
+      res.statusCode = 404;
+    }
     res.end();
   };
 
