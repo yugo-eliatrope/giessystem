@@ -9,7 +9,7 @@ export interface ILogger {
 export class Logger implements ILogger {
   constructor(
     private readonly eventBus: EventBus,
-    private readonly scope?: string,
+    private readonly scope?: string
   ) {}
 
   public info = (...args: unknown[]) => {

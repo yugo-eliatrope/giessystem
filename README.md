@@ -167,27 +167,64 @@ sudo systemctl enable giessystem-tunnel
 sudo systemctl start giessystem-tunnel
 ```
 
+## Архитектура
+
+Проект построен на **event-driven архитектуре** с типизированной шиной событий.
+
+### EventBus
+
+Центральный компонент — `EventBus` — типизированная обёртка над `EventEmitter`:
+
+```typescript
+type AppEvents = {
+  'sensor:data': UnsavedSensorReading;  // Данные с датчиков
+  'pump:activate': { time: number };     // Команда включения насоса
+  'log:entry': { message: string };      // Лог-сообщение
+};
+```
+
+### Orchestrator
+
+`Orchestrator` связывает компоненты через подписку на события:
+
+| Поток | Описание |
+|-------|----------|
+| `sensor:data` → Database → WebSocket | Данные с датчика сохраняются в БД и отправляются всем клиентам |
+| `pump:activate` → Serial | Команда на включение насоса передаётся в Arduino |
+| `log:entry` → Database → WebSocket | Лог сохраняется в БД и транслируется клиентам |
+
+Компоненты независимы друг от друга и взаимодействуют только через события. WebSocket, подписанный на события, гарантирует live данные в UI.
+
 ## Структура проекта
 
 ```
 giessystem/
 ├── arduino/
-│   └── app.ino          # Скетч для Arduino
+│   └── app.ino              # Скетч для Arduino
+├── prisma/
+│   ├── schema.prisma        # Схема базы данных
+│   └── dev.db               # SQLite база данных
 ├── src/
-│   ├── index.ts         # Точка входа
-│   ├── config.ts        # Конфигурация из .env
-│   ├── server.ts        # HTTP сервер
-│   ├── serial-manager.ts # Работа с Serial портом
-│   ├── parser.ts        # Парсинг данных от Arduino
-│   ├── store.ts         # Хранение состояния
-│   └── logger.ts        # Логирование
+│   ├── index.ts             # Точка входа
+│   ├── config.ts            # Конфигурация из .env
+│   ├── event-bus.ts         # Типизированная шина событий
+│   ├── orchestrator.ts      # Связывание компонентов через события
+│   ├── http-server.ts       # HTTP сервер
+│   ├── websocket-server.ts  # WebSocket сервер
+│   ├── serial-manager.ts    # Работа с Serial портом
+│   ├── database-manager.ts  # Работа с Prisma/SQLite
+│   ├── parser.ts            # Парсинг данных от Arduino
+│   ├── domain.ts            # Доменные типы
+│   ├── logger.ts            # Логирование
+│   └── fs.ts                # Утилиты для работы с файлами
 ├── public/
-│   └── index.html       # Веб-интерфейс
-├── dist/                # Скомпилированные JS файлы
+│   ├── index.html           # HTML страница
+│   ├── styles.css           # Стили
+│   └── app.js               # Клиентский JavaScript
+├── dist/                    # Скомпилированные JS файлы
 └── package.json
 ```
 
 ## Лицензия
 
 ISC
-

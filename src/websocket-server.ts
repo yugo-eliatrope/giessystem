@@ -8,18 +8,21 @@ import { ILogger } from './logger';
 
 interface IStore {
   getState: () => Promise<State>;
-};
+}
 
-type OutgoingMessage = {
-  type: 'state';
-  data: State;
-} | {
-  type: 'log';
-  data: LogEntry;
-} | {
-  type: 'reading';
-  data: SensorReading;
-};
+type OutgoingMessage =
+  | {
+      type: 'state';
+      data: State;
+    }
+  | {
+      type: 'log';
+      data: LogEntry;
+    }
+  | {
+      type: 'reading';
+      data: SensorReading;
+    };
 
 export class WebSocketServer {
   private wss: WsWebSocketServer;
@@ -27,7 +30,7 @@ export class WebSocketServer {
 
   constructor(
     private readonly logger: ILogger,
-    private readonly store: IStore,
+    private readonly store: IStore
   ) {
     this.wss = new WsWebSocketServer({ noServer: true });
 

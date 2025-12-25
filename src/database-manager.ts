@@ -47,10 +47,7 @@ export class DatabaseManager {
   }
 
   async getState(): Promise<State> {
-    const [sensorReading, logEntries] = await Promise.all([
-      this.getSensorReadings(1),
-      this.getLogEntries(100),
-    ]);
+    const [sensorReading, logEntries] = await Promise.all([this.getSensorReadings(1), this.getLogEntries(100)]);
     return {
       temperature: sensorReading[0]?.temperature,
       humidity: sensorReading[0]?.humidity,

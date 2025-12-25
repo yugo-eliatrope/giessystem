@@ -14,6 +14,5 @@ export type State = {
 
 export type { SensorReading, LogEntry };
 
-export const isUnsavedSensorReading = (data: UnsavedLogEntry | UnsavedSensorReading): data is UnsavedSensorReading => {
-  return 'temperature' in data;
-};
+export const isUnsavedSensorReading = (data: UnsavedLogEntry | UnsavedSensorReading): data is UnsavedSensorReading =>
+  'temperature' in data;

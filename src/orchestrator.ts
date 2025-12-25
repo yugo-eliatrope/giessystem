@@ -1,11 +1,11 @@
 import process from 'process';
 
+import { DatabaseManager } from './database-manager';
+import { EventBus } from './event-bus';
+import { HttpServer } from './http-server';
 import { Logger } from './logger';
 import { SerialManager } from './serial-manager';
-import { HttpServer } from './http-server';
-import { DatabaseManager } from './database-manager';
 import { WebSocketServer } from './websocket-server';
-import { EventBus } from './event-bus';
 
 export class Orchestrator {
   constructor(
@@ -14,7 +14,7 @@ export class Orchestrator {
     private readonly database: DatabaseManager,
     private readonly serial: SerialManager,
     private readonly httpServer: HttpServer,
-    private readonly wsServer: WebSocketServer,
+    private readonly wsServer: WebSocketServer
   ) {
     this.setupEventFlows();
   }
@@ -70,4 +70,3 @@ export class Orchestrator {
     process.on('SIGTERM', shutdown);
   }
 }
-

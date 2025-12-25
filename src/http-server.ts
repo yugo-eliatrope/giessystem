@@ -1,8 +1,8 @@
 import http from 'http';
 import path from 'path';
 
-import { ILogger } from './logger';
 import { EventBus } from './event-bus';
+import { ILogger } from './logger';
 
 type Config = {
   port: number;
@@ -15,7 +15,7 @@ export class HttpServer {
     private readonly config: Config,
     private readonly logger: ILogger,
     private readonly eventBus: EventBus,
-    private readonly staticFiles: Record<string, Buffer>,
+    private readonly staticFiles: Record<string, Buffer>
   ) {
     this.server = http.createServer(async (req, res) => {
       await this.handleRequest(req, res);
@@ -28,8 +28,8 @@ export class HttpServer {
     });
   };
 
-  public stop = (): Promise<void> => {
-    return new Promise((resolve, reject) => {
+  public stop = (): Promise<void> =>
+    new Promise((resolve, reject) => {
       this.server.close((err) => {
         if (err) {
           this.logger.error(`Error closing server: ${err.message}`);
@@ -40,7 +40,6 @@ export class HttpServer {
         }
       });
     });
-  };
 
   private handleRequest = async (req: http.IncomingMessage, res: http.ServerResponse) => {
     const url = new URL(`http://localhost${req.url}`);
@@ -102,5 +101,5 @@ export class HttpServer {
       default:
         return 'application/octet-stream';
     }
-  };  
+  };
 }

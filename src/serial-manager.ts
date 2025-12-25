@@ -1,9 +1,9 @@
 import { SerialPort } from 'serialport';
 
-import { ILogger } from './logger';
-import { parseSerialData } from './parser';
 import { isUnsavedSensorReading } from './domain';
 import { EventBus } from './event-bus';
+import { ILogger } from './logger';
+import { parseSerialData } from './parser';
 
 export type SerialManagerConfig = {
   path: string;
@@ -16,7 +16,7 @@ export class SerialManager {
   constructor(
     config: SerialManagerConfig,
     private readonly logger: ILogger,
-    private readonly eventBus: EventBus,
+    private readonly eventBus: EventBus
   ) {
     const { path, baudRate } = config;
 
