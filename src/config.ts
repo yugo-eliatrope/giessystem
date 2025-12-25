@@ -24,6 +24,7 @@ export const config = {
   },
   httpServer: {
     port: getEnvVarAsNumber('HTTP_SERVER_PORT'),
+    authPassword: process.env.AUTH_PASSWORD || null,
   },
   database: {
     url: getEnvVar('DATABASE_URL'),

@@ -21,7 +21,7 @@ const main = async () => {
     await readAllFilesInDir('public')
   );
 
-  const wsServer = new WebSocketServer(logger.child('WebSocket'), database);
+  const wsServer = new WebSocketServer(logger.child('WebSocket'), database, httpServer.isAuthenticated);
 
   const serial = new SerialManager(config.serial, logger.child('Serial'), eventBus);
 
