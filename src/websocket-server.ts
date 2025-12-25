@@ -24,13 +24,16 @@ type OutgoingMessage =
       data: SensorReading;
     };
 
+type AuthChecker = (req: http.IncomingMessage) => boolean;
+
 export class WebSocketServer {
   private wss: WsWebSocketServer;
   private clients: Set<WebSocket> = new Set();
 
   constructor(
     private readonly logger: ILogger,
-    private readonly store: IStore
+    private readonly store: IStore,
+    private readonly isAuthenticated: AuthChecker
   ) {
     this.wss = new WsWebSocketServer({ noServer: true });
 
@@ -54,13 +57,20 @@ export class WebSocketServer {
 
   public handleUpgrade = (request: http.IncomingMessage, socket: Duplex, head: Buffer) => {
     const url = new URL(`http://localhost${request.url}`);
-    if (url.pathname === '/info') {
-      this.wss.handleUpgrade(request, socket, head, (ws) => {
-        this.wss.emit('connection', ws, request);
-      });
-    } else {
+    if (url.pathname !== '/info') {
       socket.destroy();
+      return;
     }
+
+    if (!this.isAuthenticated(request)) {
+      socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+      socket.destroy();
+      return;
+    }
+
+    this.wss.handleUpgrade(request, socket, head, (ws) => {
+      this.wss.emit('connection', ws, request);
+    });
   };
 
   private sendInitialState = async (ws: WebSocket) => {

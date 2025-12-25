@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GiesSystem</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/public/styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🌱 GiesSystem</h1>
+      <button class="logout-btn" id="logout-btn">Abmelden</button>
+    </header>
+
+    <div class="sensors">
+      <div class="sensor-card">
+        <div class="icon">🌡️</div>
+        <div class="value" id="temperature">--</div>
+        <div class="label">Temperatur</div>
+      </div>
+      <div class="sensor-card">
+        <div class="icon">💧</div>
+        <div class="value" id="humidity">--</div>
+        <div class="label">Luftfeuchtigkeit</div>
+      </div>
+    </div>
+
+    <div class="pump-card">
+      <h2>Pumpe starten</h2>
+      <form class="pump-form" id="pump-form">
+        <input type="number" id="pump-time" min="2" max="32" placeholder="Sekunden" required>
+        <button type="submit">Starten</button>
+      </form>
+      <p class="hint">Laufzeit: 2 bis 32 Sekunden</p>
+    </div>
+
+    <button class="logs-toggle" id="logs-toggle">
+      <span>📋 Systemprotokolle</span>
+      <span class="arrow">▼</span>
+    </button>
+
+    <p class="updated" id="updated"></p>
+  </div>
+
+  <div class="logs-overlay" id="logs-overlay"></div>
+  <div class="logs-panel" id="logs-panel">
+    <div class="logs-header">
+      <h3>Systemprotokolle</h3>
+      <button class="logs-close" id="logs-close">×</button>
+    </div>
+    <div class="logs-content" id="logs-content">
+      <p class="empty-logs">Keine Protokolle vorhanden</p>
+    </div>
+  </div>
+
+  <script src="/public/app.js"></script>
+</body>
+</html>
