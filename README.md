@@ -45,9 +45,20 @@ yarn build
 DATABASE_URL="file:./dev.db"
 SERIAL_PORT_PATH=/dev/ttyUSB0
 SERIAL_BAUD_RATE=9600
-SERVER_PORT=3000
-MAX_LOG_MESSAGES=100
+HTTP_SERVER_PORT=3000
+
+# Опционально: пароль для доступа к веб-интерфейсу
+# Если не задан — авторизация отключена
+AUTH_PASSWORD=your_secret_password
 ```
+
+| Переменная | Обязательная | Описание |
+|------------|--------------|----------|
+| `DATABASE_URL` | ✓ | Путь к SQLite базе данных |
+| `SERIAL_PORT_PATH` | ✓ | Путь к Serial порту Arduino |
+| `SERIAL_BAUD_RATE` | ✓ | Скорость Serial соединения (обычно 9600) |
+| `HTTP_SERVER_PORT` | ✓ | Порт HTTP сервера |
+| `AUTH_PASSWORD` | — | Пароль для входа. Если не задан, авторизация отключена |
 
 > **Примечание:** Путь к Serial порту зависит от ОС:
 > - Linux: `/dev/ttyUSB0` или `/dev/ttyACM0`
@@ -89,8 +100,11 @@ yarn dev
 
 | Endpoint | Метод | Описание |
 |----------|-------|----------|
-| `/` | GET | Веб-интерфейс |
-| `/info` | GET | JSON с данными температуры, влажности и логами |
+| `/` | GET | Страница входа (если AUTH_PASSWORD задан) |
+| `/login` | POST | Авторизация `{ password: string }` |
+| `/logout` | GET | Выход из системы |
+| `/app` | GET | Веб-интерфейс (требует авторизации) |
+| `/info` | WebSocket | Live-данные температуры, влажности и логов |
 | `/pump?time=N` | GET | Включить насос на N секунд (2-32) |
 
 ## Удалённый доступ через SSH туннель
@@ -218,7 +232,8 @@ giessystem/
 │   ├── logger.ts            # Логирование
 │   └── fs.ts                # Утилиты для работы с файлами
 ├── public/
-│   ├── index.html           # HTML страница
+│   ├── index.html           # Страница входа
+│   ├── app.html             # Основной интерфейс
 │   ├── styles.css           # Стили
 │   └── app.js               # Клиентский JavaScript
 ├── dist/                    # Скомпилированные JS файлы
